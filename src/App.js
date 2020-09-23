@@ -4,9 +4,18 @@ import Form from './components/Form';
 import FilterButton from './components/FilterButton';
 import Todo from './components/Todo';
 
+const FILTER_MAP = {
+  All: () => true,
+  Active: task => !task.completed,
+  Completed: task => task.completed
+};
+
+const FILTER_NAMES = Object.keys(FILTER_MAP);
+
 function App(props) {
 
   const [tasks, setTasks] = useState(props.tasks);
+  const [filter, setFilter] = useState('All');
 
   function addTask(name){
     const newTask = {id: "todo-"+nanoid(), name: name, completed: false};
@@ -28,17 +37,38 @@ function App(props) {
     setTasks(remainingTasks);
   }
 
+  function editTask(id, newName){
+    const editedTaskList = tasks.map(task => {
+      if (id === task.id){
+        task.name = newName;
+      }
+      return task;
+    }); 
+    setTasks(editedTaskList); 
+  }
+
   //console.log(tasks);
-  const taskList = tasks.map(task => (
+  const taskList = tasks
+  .filter(task => FILTER_MAP[filter](task))
+  .map(task => (
     <Todo 
     id={task.id}
     name={task.name} 
     completed={task.completed}
     key={task.id}
     toggleTaskCompleted={toggleTaskCompleted}
-    deleteTask={deleteTask}  />
+    deleteTask={deleteTask}
+    editTask={editTask}  />
   ));
-  //console.log(taskList);
+
+  const filterList = FILTER_NAMES.map(name => (
+    <FilterButton 
+      key={name} 
+      name={name}
+      isPressed={name === filter}
+      setFilter={setFilter}
+    />
+  ));
 
   const taskNoun = taskList.length === 1 ? "task" : "tasks";
   const headingText = `${taskList.length} ${taskNoun} remaining`;
@@ -50,22 +80,9 @@ function App(props) {
       <Form onSubmitCallback={addTask} />
 
       <div className="filters btn-group stack-exception">
-        <button type="button" className="btn toggle-btn" aria-pressed="true">
-          <span className="visually-hidden">Show </span>
-          <span>all</span>
-          <span className="visually-hidden"> tasks</span>
-        </button>
-        <button type="button" className="btn toggle-btn" aria-pressed="false">
-          <span className="visually-hidden">Show </span>
-          <span>Active</span>
-          <span className="visually-hidden"> tasks</span>
-        </button>
-        <button type="button" className="btn toggle-btn" aria-pressed="false">
-          <span className="visually-hidden">Show </span>
-          <span>Completed</span>
-          <span className="visually-hidden"> tasks</span>
-        </button>
+        {filterList}
       </div>
+
       <h2 id="list-heading">
         {headingText}
       </h2>
