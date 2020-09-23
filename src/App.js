@@ -1,23 +1,47 @@
-import React from 'react';
+import { nanoid } from 'nanoid';
+import React, { useState } from 'react';
 import Form from './components/Form';
 import FilterButton from './components/FilterButton';
 import Todo from './components/Todo';
 
 function App(props) {
 
+  const [tasks, setTasks] = useState(props.tasks);
+
   function addTask(name){
-    alert(name);
+    const newTask = {id: "todo-"+nanoid(), name: name, completed: false};
+    setTasks([...tasks, newTask]);
   }
 
-  console.log(props.tasks);
-  const taskList = props.tasks.map(task => (
+  function toggleTaskCompleted(id){
+    const updatedTasks = tasks.map( task => {
+      if (id === task.id){
+        return{...task, completed: !task.completed}
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+  }
+
+  function deleteTask(id){
+    const remainingTasks = tasks.filter(task => task.id !== id);
+    setTasks(remainingTasks);
+  }
+
+  //console.log(tasks);
+  const taskList = tasks.map(task => (
     <Todo 
     id={task.id}
     name={task.name} 
     completed={task.completed}
-    key={task.id}  />
+    key={task.id}
+    toggleTaskCompleted={toggleTaskCompleted}
+    deleteTask={deleteTask}  />
   ));
-  console.log(taskList);
+  //console.log(taskList);
+
+  const taskNoun = taskList.length === 1 ? "task" : "tasks";
+  const headingText = `${taskList.length} ${taskNoun} remaining`;
 
   return (
     <div className="todoapp stack-large">
@@ -43,7 +67,7 @@ function App(props) {
         </button>
       </div>
       <h2 id="list-heading">
-        3 tasks remaining
+        {headingText}
       </h2>
       <ul
         role="list"
